@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 from django.shortcuts import reverse
 from rango.forms import PageForm
 from rango.forms import UserForm, UserProfileForm
+from django.contrib.auth import authenticate, login
 
 def index(request):
     # Construct a dictionary to pass to the template engine as its context.
