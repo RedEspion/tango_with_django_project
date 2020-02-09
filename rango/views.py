@@ -9,6 +9,7 @@ from rango.forms import PageForm
 from rango.forms import UserForm, UserProfileForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from datetime import datetime
 
 def index(request):
     # Construct a dictionary to pass to the template engine as its context.
@@ -21,9 +22,15 @@ def index(request):
     context_dict['categories'] = category_list
     context_dict['pages'] = pages_list
 
-    return render(request, 'rango/index.html', context=context_dict)
+    response = render(request, 'rango/index.html', context=context_dict)
+
+    visitor_cookie_handler(request, response)
+
+    return response
 
 def about(request):
+    if request.session.test_cookie_worked():
+        print("TEST COOKIE WORKED!")
     return render(request, 'rango/about.html')
 
 def show_category(request, category_name_slug):
@@ -141,3 +148,17 @@ def user_logout(request):
 @login_required
 def restricted(request):
     return render(request, 'rango/restricted.html')
+
+def visitor_cookie_handler(request, response):
+    visits = int(request.COOKIES.get('visits', '1'))
+
+    last_visit_cookie = request.COOKIES.get('last_visit', str(datetime.now()))
+    last_visit_time = datetime.strptime(last_visit_cookie[:-7], '%Y-%m-%d %H:%M:%S')
+
+    if(datetime.now() - last_visit_time).days > 0:
+        visits = visits + 1
+        response.set_cookie('last_visit', str(datetime.now()))
+    else:
+        response.set_cookie('last_visit', last_visit_cookie)
+
+    response.set_cookie('visits', visits)
